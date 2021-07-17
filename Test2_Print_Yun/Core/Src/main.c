@@ -94,7 +94,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  printf("Hello World!\r\n");
+  printf("Hello World!\n");
   DEBUG_PRINT(WORD_OK, "初始化GPIO和USART成功");
   /* USER CODE END 2 */
 
