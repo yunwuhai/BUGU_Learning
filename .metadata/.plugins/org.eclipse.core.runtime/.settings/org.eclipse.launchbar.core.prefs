@@ -1,0 +1,8 @@
+LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/arch=x86_64
+LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/name=Local
+LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=win32
+configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Debug blink,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:F407VE_LED_3Color Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Test1_Blink_3LED_Yun3 Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Test2_Print_Yun Debug
+eclipse.preferences.version=1
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Debug\ blink/activeLaunchMode=run
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Debug\ blink/activeLaunchTarget=null\:---
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Test1_Blink_3LED_Yun3\ Debug/activeLaunchMode=debug

@@ -1,0 +1,33 @@
+/*************************************************************************************
+ * @Description  : 
+ * @Version      : 
+ * @Author       : YunWuHai
+ * @Date         : 2021-07-09 17:09:51
+ * @LastEditors  : YunWuHai
+ * @LastEditTime : 2021-07-09 17:44:47
+ * @FilePath     : \ST7789\EXP_HAL_ST7789.c
+ * @Copyright (C) 2021 YunWuHai. All rights reserved.
+ *************************************************************************************/
+#include "EXP_HAL_ST7789.h"
+
+#define delay_ms(a) HAL_Delay(a)
+
+void LCD_GPIO_Init(vodi)
+{
+
+}
+
+void LCD_Writ_Bus(uint8_t dat) 
+{
+	LCD_CS_Clr();
+    HAL_SPI_Transmit(&ST7789_SPI_PORT, &dat, 1, 0xFFFF);
+    LCD_CS_Set();	
+}
+
+void LCD_WR_DATA(uint16_t dat)
+{
+	LCD_CS_Clr();
+    HAL_SPI_Transmit(&ST7789_SPI_PORT, (uint8_t *)&dat, 2, 0xFFFF);
+    LCD_CS_Set();
+}
+

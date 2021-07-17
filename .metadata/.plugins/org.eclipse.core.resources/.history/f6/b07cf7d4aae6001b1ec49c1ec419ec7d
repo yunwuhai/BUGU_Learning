@@ -1,0 +1,23 @@
+/*************************************************************************************
+ * @Description  : 
+ * @Version      : 
+ * @Author       : YunWuHai
+ * @Date         : 2021-06-02 15:13:01
+ * @LastEditors  : YunWuHai
+ * @LastEditTime : 2021-06-05 10:41:35
+ * @FilePath     : \VS1053\HAL_Delay_us.c
+ * @Copyright (C) 2021 YunWuHai. All rights reserved.
+ *************************************************************************************/
+#include "HAL_Delay_us.h"
+
+void delay_us(uint16_t us)
+{
+    uint16_t differ=0xffff-us-5;
+    DELAY_TIM_Start();
+    __HAL_TIM_SetCounter(&DELAY_TIMER,differ);
+    while(differ < 0xffff-5)
+    {
+        differ = __HAL_TIM_GetCounter(&DELAY_TIMER);
+    }
+    DELAY_TIM_Stop();
+}

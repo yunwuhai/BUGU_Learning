@@ -1,0 +1,259 @@
+/*************************************************************************************
+ * @Description  : 
+ * @Version      : 
+ * @Author       : YunWuHai
+ * @Date         : 2021-06-04 21:06:56
+ * @LastEditors  : YunWuHai
+ * @LastEditTime : 2021-07-09 17:07:05
+ * @FilePath     : \ST7789\HAL_ST7789.h
+ * @Copyright (C) 2021 YunWuHai. All rights reserved.
+ *************************************************************************************/
+#ifndef _HAL_ST7789_H_
+#define _HAL_ST7789_H_
+
+/*************************************************************************************
+ * 库引用
+ *************************************************************************************/
+#include "main.h"
+
+// 字符库，此库的标准字符库有HAL_ST7789_BasicFont.h和HAL_ST7789_FastFont.h，一次只应该调用一个字符库
+#include "HAL_ST7789_FastFont.h"
+
+
+/*************************************************************************************
+ * 引脚设置
+ *************************************************************************************/
+#define ST7789_SPI_PORT hspi5
+extern SPI_HandleTypeDef ST7789_SPI_PORT;
+
+// 引脚宏定义
+#define ST7789_RST_PORT ST7789_RST_GPIO_Port
+#define ST7789_RST_PIN ST7789_RST_Pin
+#define ST7789_DC_PORT ST7789_DC_GPIO_Port
+#define ST7789_DC_PIN ST7789_DC_Pin
+#define ST7789_CS_PORT ST7789_CS_GPIO_Port
+#define ST7789_CS_PIN ST7789_CS_Pin
+// 如果配置有背光才会定义
+#ifdef ST7789_BLK_Pin
+    #define ST7789_BLK_PIN ST7789_BLK_Pin
+    #define ST7789_BLK_PORT ST7789_BLK_GPIO_Port
+#endif
+// 仅在拥有字库的屏幕使用时才需要引用
+#ifdef ZK_CS_Pin
+    #define ZK_CS_PIN ZK_CS_Pin
+    #define ZK_CS_PORT ZK_CS_GPIO_Port
+#endif
+
+/*************************************************************************************
+ * 命令宏定义
+ *************************************************************************************/
+// 一些控制寄存器
+#define ST7789_NOP     0x00
+#define ST7789_SWRESET 0x01
+#define ST7789_RDDID   0x04
+#define ST7789_RDDST   0x09
+
+#define ST7789_SLPIN   0x10
+#define ST7789_SLPOUT  0x11
+#define ST7789_PTLON   0x12
+#define ST7789_NORON   0x13
+
+#define ST7789_INVOFF  0x20
+#define ST7789_INVON   0x21
+#define ST7789_DISPOFF 0x28
+#define ST7789_DISPON  0x29
+#define ST7789_CASET   0x2A
+#define ST7789_RASET   0x2B
+#define ST7789_RAMWR   0x2C
+#define ST7789_RAMRD   0x2E
+
+#define ST7789_PTLAR   0x30
+#define ST7789_TEOFF   0x34
+#define ST7789_TEON    0x35
+#define ST7789_COLMOD  0x3A
+#define ST7789_MADCTL  0x36
+
+
+/*************************************************************************************
+ * 颜色宏定义
+ *************************************************************************************/
+#define WHITE 0xFFFF
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define RED 0xF800
+#define MAGENTA 0xF81F
+#define GREEN 0x07E0
+#define CYAN 0x7FFF
+#define YELLOW 0xFFE0
+#define GRAY 0X8430
+#define BRED 0XF81F
+#define GRED 0XFFE0
+#define GBLUE 0X07FF
+#define BROWN 0XBC40
+#define BRRED 0XFC07
+#define DARKBLUE 0X01CF
+#define LIGHTBLUE 0X7D7C
+#define GRAYBLUE 0X5458
+#define LIGHTGREEN 0X841F
+#define LGRAY 0XC618
+#define LGRAYBLUE 0XA651
+#define LBBLUE 0X2B12
+
+
+/*************************************************************************************
+ * 显示效果配置
+ *************************************************************************************/
+// 设置长宽，目前只支持240*240
+#define ST7789_240X240
+// 方向旋转，默认为2，目前范围可为0~3
+#define ST7789_ROTATION 2
+#ifdef ST7789_240X240
+
+    #define ST7789_WIDTH 240
+    #define ST7789_HEIGHT 240
+    
+    #if ST7789_ROTATION == 0
+        #define X_SHIFT 0
+        #define Y_SHIFT 80
+    #elif ST7789_ROTATION == 1
+        #define X_SHIFT 80
+        #define Y_SHIFT 0
+    #elif ST7789_ROTATION == 2
+        #define X_SHIFT 0
+        #define Y_SHIFT 0
+    #elif ST7789_ROTATION == 3
+        #define X_SHIFT 0
+        #define Y_SHIFT 0
+    #endif
+    
+#endif
+
+/* 0：从上到下定位， 1：从下到上定位 */
+#define ST7789_MADCTL_MY  0x80  
+/* 0：从左到右定位， 1：从右到左定位 */
+#define ST7789_MADCTL_MX  0x40  
+/* 0：正常， 1：颠倒 */
+#define ST7789_MADCTL_MV  0x20  
+/* 0：从上到下刷新， 1：从下到上刷新 */
+#define ST7789_MADCTL_ML  0x10
+/* 0：正常颜色RGB， 1：颜色反相BGR */
+#define ST7789_MADCTL_RGB 0x00
+
+#define ST7789_RDID1   0xDA
+#define ST7789_RDID2   0xDB
+#define ST7789_RDID3   0xDC
+#define ST7789_RDID4   0xDD
+
+#define ST7789_COLOR_MODE_16bit 0x55    //  RGB565 (16bit)
+#define ST7789_COLOR_MODE_18bit 0x66    //  RGB666 (18bit)
+
+
+/*************************************************************************************
+ * 基础驱动函数
+ *************************************************************************************/
+// 操作定义
+// 复位
+#define ST7789_RST_Clr() HAL_GPIO_WritePin(ST7789_RST_PORT, ST7789_RST_PIN, GPIO_PIN_RESET)
+#define ST7789_RST_Set() HAL_GPIO_WritePin(ST7789_RST_PORT, ST7789_RST_PIN, GPIO_PIN_SET)
+
+// 程序数据模式转换
+#define ST7789_DC_Clr() HAL_GPIO_WritePin(ST7789_DC_PORT, ST7789_DC_PIN, GPIO_PIN_RESET)
+#define ST7789_DC_Set() HAL_GPIO_WritePin(ST7789_DC_PORT, ST7789_DC_PIN, GPIO_PIN_SET)
+
+// 打开背光,如果不存在背光灯，则使用0ms延时进行占用（实际上好像会消耗1ms，但影响不大）
+#ifdef ST7789_BLK_PIN
+    #define ST7789_BLK_Clr() HAL_GPIO_WritePin(ST7789_BLK_PORT, ST7789_BLK_PIN, GPIO_PIN_RESET)
+    #define ST7789_BLK_Set() HAL_GPIO_WritePin(ST7789_BLK_PORT, ST7789_BLK_PIN, GPIO_PIN_SET)
+#else
+    #define ST7789_BLK_Clr() HAL_Delay(0)
+    #define ST7789_BLK_Clr() HAL_Delay(0)
+#endif
+
+// ST7789片选
+#define ST7789_Select() HAL_GPIO_WritePin(ST7789_CS_PORT, ST7789_CS_PIN, GPIO_PIN_RESET)
+#define ST7789_UnSelect() HAL_GPIO_WritePin(ST7789_CS_PORT, ST7789_CS_PIN, GPIO_PIN_SET)
+
+// 进行字库片选，仅在拥有字库的时候使用，否则使用0ms延时占用
+#ifdef ZK_CS_PIN
+// 字库片选
+    #define ZK_Select() HAL_GPIO_WritePin(ZK_CS_PORT, ZK_CS_PIN, GPIO_PIN_RESET)
+    #define ZK_UnSelect() HAL_GPIO_WritePin(ZK_CS_PORT, ZK_CS_PIN, GPIO_PIN_SET)
+#else
+    #define ZK_Select() HAL_Delay(0)
+    #define ZK_UnSelect() HAL_Delay(0)
+#endif
+
+#define ABS(x) ((x) > 0 ? (x) : -(x))
+
+void ST7789_WriteData_Bit8(uint8_t data);
+void ST7789_WriteData_Bit16(uint16_t data);
+void ST7789_WriteData(uint8_t *buff, size_t buff_size); // 发送数据串
+void ST7789_WriteCommand(uint8_t cmd);//写入一个指令
+void ST7789_SetRotation(uint8_t m); // 设置扫描方向
+void ST7789_SetAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+void ST7789_Init(void);//LCD初始化
+
+void ST7789_Fill(uint16_t xSta, uint16_t ySta, uint16_t xEnd, uint16_t yEnd, uint16_t color);   // 填充
+void ST7789_FillAll(uint16_t color);
+void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
+void ST7789_DrawPixel_4px(uint16_t x, uint16_t y, uint16_t color);
+void ST7789_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
+void ST7789_DrawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+void ST7789_DrawCircle(uint16_t x0, uint16_t y0, uint8_t r, uint16_t color);
+
+#ifdef _HAL_ST7789_BASICFONT_H_
+void ST7789_WriteChinese_BasicFont(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);//显示汉字串
+void ST7789_WriteChar_BasicFont(uint16_t x,uint16_t y,uint8_t num,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);//显示一个字符
+void ST7789_WriteString_BasicFont(uint16_t x,uint16_t y,const uint8_t *p,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);//显示字符串
+void ST7789_WriteIntNum_BasicFont(uint16_t x,uint16_t y,uint16_t num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey);//显示整数变量
+void ST7789_WriteFloatNum_BasicFont(uint16_t x,uint16_t y,float num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey);//显示两位小数变量
+#define ST7789_WriteChar ST7789_WriteChar_BasicFont
+#define ST7789_WriteString ST7789_WriteString_BasicFont
+#define ST7789_WriteIntNum ST7789_WriteIntNum_BasicFont
+#define ST7789_WriteFloatNum ST7789_WriteFloatNum_BasicFont
+#endif
+
+#ifdef _HAL_ST7789_FASTFONT_H_
+void ST7789_WriteChar_FastFont(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t color, uint16_t bgcolor);
+void ST7789_WriteString_FastFont(uint16_t x, uint16_t y, const char *str, FontDef font, uint16_t color, uint16_t bgcolor);
+void ST7789_WriteIntNum_FastFont(uint16_t x, uint16_t y, int num, uint8_t len, FontDef font, uint16_t color, uint16_t bgcolor);
+void ST7789_WriteFloatNum_FastFont(uint16_t x, uint16_t y, float num, uint8_t intLen, uint8_t floatLen, FontDef font, uint16_t color, uint16_t bgcolor);
+#define ST7789_WriteChar ST7789_WriteChar_FastFont
+#define ST7789_WriteString ST7789_WriteString_FastFont
+#define ST7789_WriteIntNum ST7789_WriteIntNum_FastFont
+#define ST7789_WriteFloatNum ST7789_WriteFloatNum_FastFont
+#endif
+
+void ST7789_InvertColors(uint8_t invert);
+void ST7789_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data);
+
+void ST7789_DrawFilledRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void ST7789_DrawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t color);
+void ST7789_DrawFilledTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t color);
+void ST7789_DrawFilledCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
+
+void ST7789_TearEffect(uint8_t tear);
+
+void ST7789_Test(void);
+
+#ifdef ZK_CS_Pin
+//字库函数
+void ST7789_ZK_WriteCommand(uint8_t data);
+uint8_t ST7789_ZK_GetData_Bit8(void);
+void ST7789_ZK_GetData(uint8_t AddrHigh,uint8_t AddrMid,uint8_t AddrLow,uint8_t *pBuff,uint8_t DataLen);
+void ST7789_WriteChinese_ZK(uint16_t x,uint16_t y,uint8_t zk_num,uint16_t fc,uint16_t bc);
+void ST7789_WriteChineseString_ZK(uint16_t x,uint16_t y,uint8_t zk_num,uint8_t text[],uint16_t fc,uint16_t bc);
+void ST7789_WriteChar_ZK(uint16_t x,uint16_t y,uint8_t zk_num,uint16_t fc,uint16_t bc);
+void ST7789_WriteString_ZK(uint16_t x,uint16_t y,uint16_t zk_num,uint8_t text[],uint16_t fc,uint16_t bc);
+void ST7789_WriteString_ZK_Arial_TimesNewRoman(uint16_t x,uint16_t y,uint8_t zk_num,uint16_t fc,uint16_t bc);
+void ST7789_WriteString_ZK_Arial_String(uint16_t x,uint16_t y,uint16_t zk_num,uint8_t text[],uint16_t fc,uint16_t bc);
+void ST7789_WriteString_ZK_TimesNewRoman_String(uint16_t x,uint16_t y,uint16_t zk_num,uint8_t text[],uint16_t fc,uint16_t bc);
+#endif
+
+
+
+#endif
+
+
+
+

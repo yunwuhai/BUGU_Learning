@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="将资源“Test1_Blink_3LED_25_2/blink2.ioc”重命名为“Test1_Blink_3LED_25_2.ioc”" description="重命名资源“blink2.ioc”" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="blink2.ioc" name="Test1_Blink_3LED_25_2.ioc" stamp="1626185049639" updateReferences="true"/>
+</session>

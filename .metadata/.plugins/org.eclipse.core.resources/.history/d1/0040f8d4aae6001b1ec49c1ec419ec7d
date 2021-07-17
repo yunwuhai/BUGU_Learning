@@ -1,0 +1,24 @@
+/*************************************************************************************
+ * @Description  : 
+ * @Version      : 
+ * @Author       : YunWuHai
+ * @Date         : 2021-06-02 15:12:31
+ * @LastEditors  : YunWuHai
+ * @LastEditTime : 2021-06-05 11:16:10
+ * @FilePath     : \VS1053\HAL_Delay_us.h
+ * @Copyright (C) 2021 YunWuHai. All rights reserved.
+ *************************************************************************************/
+#ifndef _HAL_DELAY_US_H_
+#define _HAL_DELAY_US_H_
+
+#include "main.h"
+
+#define DELAY_TIMER htim2
+extern TIM_HandleTypeDef DELAY_TIMER;
+
+#define DELAY_TIM_Start() HAL_TIM_Base_Start(&DELAY_TIMER)
+#define DELAY_TIM_Stop() HAL_TIM_Base_Stop(&DELAY_TIMER)
+
+void delay_us(uint16_t us); // 微秒级延时
+
+#endif

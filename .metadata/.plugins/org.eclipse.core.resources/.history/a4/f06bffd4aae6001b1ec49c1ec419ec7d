@@ -1,0 +1,33 @@
+/*************************************************************************************
+ * @Description  : 
+ * @Version      : 
+ * @Author       : YunWuHai
+ * @Date         : 2021-06-05 01:45:38
+ * @LastEditors  : YunWuHai
+ * @LastEditTime : 2021-06-05 10:17:20
+ * @FilePath     : \VS1053\mp3player.h
+ * @Copyright (C) 2021 YunWuHai. All rights reserved.
+ *************************************************************************************/
+#ifndef __MP3PLAYER_H
+#define __MP3PLAYER_H
+
+#include "main.h"
+						  
+void mp3_play(void);
+uint16_t mp3_get_tnum(uint8_t *path);
+uint8_t mp3_play_song(uint8_t *pname);
+void mp3_index_show(uint16_t index,uint16_t total);
+void mp3_msg_show(uint32_t lenth);
+#endif
+
+
+
+
+
+
+
+
+
+
+
+

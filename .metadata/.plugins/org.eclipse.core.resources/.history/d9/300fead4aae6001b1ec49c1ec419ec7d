@@ -1,0 +1,22 @@
+/*************************************************************************************
+ * @Description  : 
+ * @Version      : 
+ * @Author       : YunWuHai
+ * @Date         : 2021-07-09 12:07:23
+ * @LastEditors  : YunWuHai
+ * @LastEditTime : 2021-07-09 12:12:06
+ * @FilePath     : \GetTimCNT\GetTimCNT.h
+ * @Copyright (C) 2021 YunWuHai. All rights reserved.
+ *************************************************************************************/
+#ifndef _GETTIMCNT_H_
+#define _GETTIMCNT_H_
+
+#define	HALF_US_TIM			TIM1
+#define	HalfUsTimStart()	LL_TIM_SetCounter(HALF_US_TIM, 0); LL_TIM_EnableCounter(HALF_US_TIM)
+#define	GetTick(time)		time = HALF_US_TIM->CNT
+#define	HalfUsTimEnd()		LL_TIM_DisableCounter(HALF_US_TIM)
+
+typedef uint32_t tim32_t;
+
+
+#endif

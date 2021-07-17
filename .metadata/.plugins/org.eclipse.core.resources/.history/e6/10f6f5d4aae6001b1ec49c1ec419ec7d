@@ -1,0 +1,1273 @@
+#include "HAL_ST7789.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "math.h"
+
+/*************************************************************************************
+ * @description: 初始化GPIO，防止错误引脚使屏幕误触发
+ * @param {*}
+ * @return {*}
+ *************************************************************************************/
+static void ST7789_GPIO_Init(void)
+{
+    ST7789_RST_Set();
+    ST7789_DC_Set();
+    ST7789_BLK_Set();
+    ST7789_UnSelect();
+    ZK_UnSelect();
+}
+
+static void ST7789_WriteBus(uint8_t data)
+{
+    HAL_SPI_Transmit(&ST7789_SPI_PORT, &data, 1, HAL_MAX_DELAY);
+}
+
+/*************************************************************************************
+ * @description: 发送八位的数据
+ * @param {uint8_t} data 待发送数据
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteData_Bit8(uint8_t data)
+{
+	ST7789_Select();
+	ST7789_DC_Set();
+
+	ST7789_WriteBus(data);
+	
+    ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 发送十六位的数据
+ * @param {uint16_t} data 待发送的数据
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteData_Bit16(uint16_t data)
+{
+	ST7789_Select();
+	ST7789_DC_Set();
+
+	ST7789_WriteBus(data);
+	ST7789_WriteBus(data>>8);
+
+	ST7789_UnSelect();
+}
+
+/*************************************************************************************
+ * @description: 发送数据串
+ * @param {uint8_t} *buff 数据串地址
+ * @param {size_t} buff_size 数据串大小
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteData(uint8_t *buff, size_t buff_size)
+{
+	ST7789_Select();
+	ST7789_DC_Set();
+
+	// 单次发送长度不应该超过65535字节，如果超过则应该分批次发送
+
+	while (buff_size > 0) {
+		uint16_t chunk_size = buff_size > 65535 ? 65535 : buff_size;
+		HAL_SPI_Transmit(&ST7789_SPI_PORT, buff, chunk_size, HAL_MAX_DELAY);
+		buff += chunk_size;
+		buff_size -= chunk_size;
+	}
+
+	ST7789_UnSelect();
+}
+
+/*************************************************************************************
+ * @description: 发送命令
+ * @param {uint8_t} cmd 命令符
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteCommand(uint8_t cmd)
+{
+	ST7789_Select();
+	ST7789_DC_Clr();
+
+	ST7789_WriteBus(cmd);
+
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 设置扫描方向
+ * @param {uint8_t} m 方向选择，可以有0-3四种模式
+ * @return {*}
+ *************************************************************************************/
+void ST7789_SetRotation(uint8_t m)
+{
+	ST7789_WriteCommand(ST7789_MADCTL);	// MADCTL
+	switch (m) {
+	case 0:
+		ST7789_WriteData_Bit8(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);
+		break;
+	case 1:
+		ST7789_WriteData_Bit8(ST7789_MADCTL_MY | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+		break;
+	case 2:
+		ST7789_WriteData_Bit8(ST7789_MADCTL_RGB);
+		break;
+	case 3:
+		ST7789_WriteData_Bit8(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+		break;
+	default:
+		break;
+	}
+}
+
+/*************************************************************************************
+ * @description: 设置工作窗口地址
+ * @param {uint16_t} x0 窗口左上角x轴
+ * @param {uint16_t} y0 窗口左上角y轴
+ * @param {uint16_t} x1 窗口右下角x轴
+ * @param {uint16_t} y1 窗口右下角y轴
+ * @return {*}
+ *************************************************************************************/
+void ST7789_SetAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
+{
+	ST7789_Select();
+	uint16_t x_start = x0 + X_SHIFT, x_end = x1 + X_SHIFT;
+	uint16_t y_start = y0 + Y_SHIFT, y_end = y1 + Y_SHIFT;
+	
+	/* 列设置 */
+	ST7789_WriteCommand(ST7789_CASET); 
+	{
+		uint8_t data[] = {x_start >> 8, x_start & 0xFF, x_end >> 8, x_end & 0xFF};
+		ST7789_WriteData(data, sizeof(data));
+	}
+
+	/* 行设置 */
+	ST7789_WriteCommand(ST7789_RASET);
+	{
+		uint8_t data[] = {y_start >> 8, y_start & 0xFF, y_end >> 8, y_end & 0xFF};
+		ST7789_WriteData(data, sizeof(data));
+	}
+
+	/* 写存储器 */
+	ST7789_WriteCommand(ST7789_RAMWR);
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 屏幕初始化
+ * @param {*}
+ * @return {*}
+ *************************************************************************************/
+void ST7789_Init(void)
+{
+    ST7789_GPIO_Init(); // 初始化GPIO
+
+    ST7789_RST_Clr();   // 复位
+    HAL_Delay(100);
+    ST7789_RST_Set();
+    HAL_Delay(100);
+
+    ST7789_WriteCommand(ST7789_COLMOD); // 设置色彩模式
+    ST7789_WriteData_Bit8(ST7789_COLOR_MODE_16bit);
+    
+  	ST7789_WriteCommand(0xB2);				//	Porch control
+	{
+		uint8_t data[] = {0x0C, 0x0C, 0x00, 0x33, 0x33};
+		ST7789_WriteData(data, sizeof(data));
+	}
+    
+    ST7789_WriteCommand(ST7789_MADCTL); // 设置方向
+    ST7789_SetRotation(ST7789_ROTATION);
+
+    ST7789_WriteCommand(0XB7);
+    ST7789_WriteData_Bit8(0x35);
+    ST7789_WriteCommand(0xBB);
+    ST7789_WriteData_Bit8(0x19);
+    ST7789_WriteCommand(0xC0);
+    ST7789_WriteData_Bit8(0x2C);
+    ST7789_WriteCommand(0xC2);
+    ST7789_WriteData_Bit8(0x01);
+    ST7789_WriteCommand(0xC3);
+    ST7789_WriteData_Bit8(0x12);
+    ST7789_WriteCommand(0xC4);
+    ST7789_WriteData_Bit8(0x20);
+    ST7789_WriteCommand(0xC6);
+    ST7789_WriteData_Bit8(0x0F);
+    ST7789_WriteCommand(0xD0);
+    ST7789_WriteData_Bit8(0xA4);
+    ST7789_WriteData_Bit8(0xA1);
+    
+	ST7789_WriteCommand(0xE0);
+	{
+		uint8_t data[] = {0xD0, 0x04, 0x0D, 0x11, 0x13, 0x2B, 0x3F, 0x54, 0x4C, 0x18, 0x0D, 0x0B, 0x1F, 0x23};
+		ST7789_WriteData(data, sizeof(data));
+	}
+
+    
+    ST7789_WriteCommand(0xE1);
+	{
+		uint8_t data[] = {0xD0, 0x04, 0x0C, 0x11, 0x13, 0x2C, 0x3F, 0x44, 0x51, 0x2F, 0x1F, 0x1F, 0x20, 0x23};
+		ST7789_WriteData(data, sizeof(data));
+	}
+
+    ST7789_WriteCommand(ST7789_INVON);		//	Inversion ON
+	ST7789_WriteCommand(ST7789_SLPOUT);	//	Out of sleep mode
+  	ST7789_WriteCommand(ST7789_NORON);		//	Normal Display on
+  	ST7789_WriteCommand(ST7789_DISPON);	//	Main screen turned on
+    HAL_Delay(50);
+
+    ST7789_FillAll(BLACK);
+} 
+
+
+/*************************************************************************************
+ * @description: 用纯色填充一段区域
+ * @param {uint16_t} xSta 区域左上角横坐标
+ * @param {uint16_t} ySta 区域左上角纵坐标
+ * @param {uint16_t} xEnd 区域右下角横坐标
+ * @param {uint16_t} yEnd 区域右下角纵坐标
+ * @param {uint16_t} color 填充颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_Fill(uint16_t xSta, uint16_t ySta, uint16_t xEnd, uint16_t yEnd, uint16_t color)
+{
+	if ((xEnd < 0) || (xEnd >= ST7789_WIDTH) ||
+		 (yEnd < 0) || (yEnd >= ST7789_HEIGHT))	return;
+	ST7789_Select();
+	uint16_t i, j;
+	ST7789_SetAddressWindow(xSta, ySta, xEnd, yEnd);
+	for (i = ySta; i <= yEnd; i++)
+		for (j = xSta; j <= xEnd; j++) {
+			uint8_t data[] = {color >> 8, color & 0xFF};
+			ST7789_WriteData(data, sizeof(data));
+		}
+	ST7789_UnSelect();
+}
+
+/*************************************************************************************
+ * @description: 填充整个屏幕
+ * @param {uint16_t} color 待填充的颜色值
+ * @return {*}
+ *************************************************************************************/
+void ST7789_FillAll(uint16_t color)
+{
+	uint16_t i, j;
+	ST7789_SetAddressWindow(0, 0, ST7789_WIDTH - 1, ST7789_HEIGHT - 1);
+	ST7789_Select();
+	for (i = 0; i < ST7789_WIDTH; i++)
+		for (j = 0; j < ST7789_HEIGHT; j++) {
+			uint8_t data[] = {color >> 8, color & 0xFF};
+			ST7789_WriteData(data, sizeof(data));
+		}
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 绘制像素点
+ * @param {uint16_t} x 像素点横坐标
+ * @param {uint16_t} y 像素点纵坐标
+ * @param {uint16_t} color 像素点颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color)
+{
+	if ((x < 0) || (x >= ST7789_WIDTH) ||
+		 (y < 0) || (y >= ST7789_HEIGHT))	return;
+	
+	ST7789_SetAddressWindow(x, y, x, y);
+	uint8_t data[] = {color >> 8, color & 0xFF};
+	ST7789_Select();
+	ST7789_WriteData(data, sizeof(data));
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 画一个占四像素点的大点
+ * @param {uint16_t} x 点的左上角横坐标
+ * @param {uint16_t} y 点的左上角纵坐标
+ * @param {uint16_t} color 点的颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawPixel_4px(uint16_t x, uint16_t y, uint16_t color)
+{
+	if ((x <= 0) || (x > ST7789_WIDTH) ||
+		 (y <= 0) || (y > ST7789_HEIGHT))	return;
+	ST7789_Select();
+	ST7789_Fill(x - 1, y - 1, x + 1, y + 1, color);
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 画线
+ * @param {uint16_t} x0 一端点横坐标
+ * @param {uint16_t} y0 一端点纵坐标
+ * @param {uint16_t} x1 另一端点横坐标
+ * @param {uint16_t} y1 另一端点纵坐标
+ * @param {uint16_t} color 线颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) 
+{
+	uint16_t swap;
+    uint16_t steep = ABS(y1 - y0) > ABS(x1 - x0);
+    if (steep) {
+		swap = x0;
+		x0 = y0;
+		y0 = swap;
+
+		swap = x1;
+		x1 = y1;
+		y1 = swap;
+        //_swap_int16_t(x0, y0);
+        //_swap_int16_t(x1, y1);
+    }
+
+    if (x0 > x1) {
+		swap = x0;
+		x0 = x1;
+		x1 = swap;
+
+		swap = y0;
+		y0 = y1;
+		y1 = swap;
+        //_swap_int16_t(x0, x1);
+        //_swap_int16_t(y0, y1);
+    }
+
+    int16_t dx, dy;
+    dx = x1 - x0;
+    dy = ABS(y1 - y0);
+
+    int16_t err = dx / 2;
+    int16_t ystep;
+
+    if (y0 < y1) {
+        ystep = 1;
+    } else {
+        ystep = -1;
+    }
+
+    for (; x0<=x1; x0++) {
+        if (steep) {
+            ST7789_DrawPixel(y0, x0, color);
+        } else {
+            ST7789_DrawPixel(x0, y0, color);
+        }
+        err -= dy;
+        if (err < 0) {
+            y0 += ystep;
+            err += dx;
+        }
+    }
+}
+
+/*************************************************************************************
+ * @description: 画矩形
+ * @param {uint16_t} x1 矩形左上或右下横坐标
+ * @param {uint16_t} y1 矩形左上或右下纵坐标
+ * @param {uint16_t} x2 矩形右下或左上横坐标
+ * @param {uint16_t} y2 矩形右下或左上纵坐标
+ * @param {uint16_t} color 矩形颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
+{
+	ST7789_Select();
+	ST7789_DrawLine(x1, y1, x2, y1, color);
+	ST7789_DrawLine(x1, y1, x1, y2, color);
+	ST7789_DrawLine(x1, y2, x2, y2, color);
+	ST7789_DrawLine(x2, y1, x2, y2, color);
+	ST7789_UnSelect();
+}
+
+
+
+/*************************************************************************************
+ * @description: 画圆
+ * @param {uint16_t} x0 圆心横坐标
+ * @param {uint16_t} y0 圆心纵坐标
+ * @param {uint8_t} r 圆半径
+ * @param {uint16_t} color 颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawCircle(uint16_t x0, uint16_t y0, uint8_t r, uint16_t color)
+{
+	int16_t f = 1 - r;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * r;
+	int16_t x = 0;
+	int16_t y = r;
+
+	ST7789_Select();
+	ST7789_DrawPixel(x0, y0 + r, color);
+	ST7789_DrawPixel(x0, y0 - r, color);
+	ST7789_DrawPixel(x0 + r, y0, color);
+	ST7789_DrawPixel(x0 - r, y0, color);
+
+	while (x < y) {
+		if (f >= 0) {
+			y--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x++;
+		ddF_x += 2;
+		f += ddF_x;
+
+		ST7789_DrawPixel(x0 + x, y0 + y, color);
+		ST7789_DrawPixel(x0 - x, y0 + y, color);
+		ST7789_DrawPixel(x0 + x, y0 - y, color);
+		ST7789_DrawPixel(x0 - x, y0 - y, color);
+
+		ST7789_DrawPixel(x0 + y, y0 + x, color);
+		ST7789_DrawPixel(x0 - y, y0 + x, color);
+		ST7789_DrawPixel(x0 + y, y0 - x, color);
+		ST7789_DrawPixel(x0 - y, y0 - x, color);
+	}
+	ST7789_UnSelect();
+}
+
+
+#ifdef _HAL_ST7789_BASICFONT_H_
+
+/*************************************************************************************
+ * @description: 显示单个12x12汉字
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint8_t} *s 要显示的汉字
+ * @param {uint16_t} fc 字的颜色
+ * @param {uint16_t} bc 字的背景色
+ * @param {uint8_t} sizey 字号
+ * @param {uint8_t} mode  0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+static void ST7789_WriteChinese12x12_BasicFont(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{
+	uint8_t i,j,m=0;
+	uint16_t k;
+	uint16_t HZnum;//汉字数目
+	uint16_t TypefaceNum;//一个字符所占字节大小
+	uint16_t x0=x;
+	TypefaceNum=(sizey/8+((sizey%8)?1:0))*sizey;
+	                         
+	HZnum=sizeof(tfont12)/sizeof(typFNT_GB12);	//统计汉字数目
+	for(k=0;k<HZnum;k++) 
+	{
+		if((tfont12[k].Index[0]==*(s))&&(tfont12[k].Index[1]==*(s+1)))
+		{ 	
+			ST7789_SetAddressWindow(x,y,x+sizey-1,y+sizey-1);
+			for(i=0;i<TypefaceNum;i++)
+			{
+				for(j=0;j<8;j++)
+				{	
+					if(!mode)//非叠加方式
+					{
+						if(tfont12[k].Msk[i]&(0x01<<j))ST7789_WriteData_Bit16(fc);
+						else ST7789_WriteData_Bit16(bc);
+						m++;
+						if(m%sizey==0)
+						{
+							m=0;
+							break;
+						}
+					}
+					else//叠加方式
+					{
+						if(tfont12[k].Msk[i]&(0x01<<j))	ST7789_DrawPixel(x,y,fc);//画一个点
+						x++;
+						if((x-x0)==sizey)
+						{
+							x=x0;
+							y++;
+							break;
+						}
+					}
+				}
+			}
+		}				  	
+		continue;  //查找到对应点阵字库立即退出，防止多个汉字重复取模带来影响
+	}
+} 
+
+/*************************************************************************************
+ * @description: 显示单个16x16汉字
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint8_t} *s 要显示的汉字
+ * @param {uint16_t} fc 字的颜色
+ * @param {uint16_t} bc 字的背景色
+ * @param {uint8_t} sizey 字号
+ * @param {uint8_t} mode  0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+static void ST7789_WriteChinese16x16_BasicFont(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{
+	uint8_t i,j,m=0;
+	uint16_t k;
+	uint16_t HZnum;//汉字数目
+	uint16_t TypefaceNum;//一个字符所占字节大小
+	uint16_t x0=x;
+  TypefaceNum=(sizey/8+((sizey%8)?1:0))*sizey;
+	HZnum=sizeof(tfont16)/sizeof(typFNT_GB16);	//统计汉字数目
+	for(k=0;k<HZnum;k++) 
+	{
+		if ((tfont16[k].Index[0]==*(s))&&(tfont16[k].Index[1]==*(s+1)))
+		{ 	
+			ST7789_SetAddressWindow(x,y,x+sizey-1,y+sizey-1);
+			for(i=0;i<TypefaceNum;i++)
+			{
+				for(j=0;j<8;j++)
+				{	
+					if(!mode)//非叠加方式
+					{
+						if(tfont16[k].Msk[i]&(0x01<<j))ST7789_WriteData_Bit16(fc);
+						else ST7789_WriteData_Bit16(bc);
+						m++;
+						if(m%sizey==0)
+						{
+							m=0;
+							break;
+						}
+					}
+					else//叠加方式
+					{
+						if(tfont16[k].Msk[i]&(0x01<<j))	ST7789_DrawPixel(x,y,fc);//画一个点
+						x++;
+						if((x-x0)==sizey)
+						{
+							x=x0;
+							y++;
+							break;
+						}
+					}
+				}
+			}
+		}				  	
+		continue;  //查找到对应点阵字库立即退出，防止多个汉字重复取模带来影响
+	}
+} 
+
+/*************************************************************************************
+ * @description: 显示单个24x24汉字
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint8_t} *s 要显示的汉字
+ * @param {uint16_t} fc 字的颜色
+ * @param {uint16_t} bc 字的背景色
+ * @param {uint8_t} sizey 字号
+ * @param {uint8_t} mode  0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+static void ST7789_WriteChinese24x24_BasicFont(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{
+	uint8_t i,j,m=0;
+	uint16_t k;
+	uint16_t HZnum;//汉字数目
+	uint16_t TypefaceNum;//一个字符所占字节大小
+	uint16_t x0=x;
+	TypefaceNum=(sizey/8+((sizey%8)?1:0))*sizey;
+	HZnum=sizeof(tfont24)/sizeof(typFNT_GB24);	//统计汉字数目
+	for(k=0;k<HZnum;k++) 
+	{
+		if ((tfont24[k].Index[0]==*(s))&&(tfont24[k].Index[1]==*(s+1)))
+		{ 	
+			ST7789_SetAddressWindow(x,y,x+sizey-1,y+sizey-1);
+			for(i=0;i<TypefaceNum;i++)
+			{
+				for(j=0;j<8;j++)
+				{	
+					if(!mode)//非叠加方式
+					{
+						if(tfont24[k].Msk[i]&(0x01<<j))ST7789_WriteData_Bit16(fc);
+						else ST7789_WriteData_Bit16(bc);
+						m++;
+						if(m%sizey==0)
+						{
+							m=0;
+							break;
+						}
+					}
+					else//叠加方式
+					{
+						if(tfont24[k].Msk[i]&(0x01<<j))	ST7789_DrawPixel(x,y,fc);//画一个点
+						x++;
+						if((x-x0)==sizey)
+						{
+							x=x0;
+							y++;
+							break;
+						}
+					}
+				}
+			}
+		}				  	
+		continue;  //查找到对应点阵字库立即退出，防止多个汉字重复取模带来影响
+	}
+} 
+
+
+/*************************************************************************************
+ * @description: 显示单个32x32汉字
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint8_t} *s 要显示的汉字
+ * @param {uint16_t} fc 字的颜色
+ * @param {uint16_t} bc 字的背景色
+ * @param {uint8_t} sizey 字号
+ * @param {uint8_t} mode  0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+static void ST7789_WriteChinese32x32_BasicFont(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{
+	uint8_t i,j,m=0;
+	uint16_t k;
+	uint16_t HZnum;//汉字数目
+	uint16_t TypefaceNum;//一个字符所占字节大小
+	uint16_t x0=x;
+	TypefaceNum=(sizey/8+((sizey%8)?1:0))*sizey;
+	HZnum=sizeof(tfont32)/sizeof(typFNT_GB32);	//统计汉字数目
+	for(k=0;k<HZnum;k++) 
+	{
+		if ((tfont32[k].Index[0]==*(s))&&(tfont32[k].Index[1]==*(s+1)))
+		{ 	
+			ST7789_SetAddressWindow(x,y,x+sizey-1,y+sizey-1);
+			for(i=0;i<TypefaceNum;i++)
+			{
+				for(j=0;j<8;j++)
+				{	
+					if(!mode)//非叠加方式
+					{
+						if(tfont32[k].Msk[i]&(0x01<<j))ST7789_WriteData_Bit16(fc);
+						else ST7789_WriteData_Bit16(bc);
+						m++;
+						if(m%sizey==0)
+						{
+							m=0;
+							break;
+						}
+					}
+					else//叠加方式
+					{
+						if(tfont32[k].Msk[i]&(0x01<<j))	ST7789_DrawPixel(x,y,fc);//画一个点
+						x++;
+						if((x-x0)==sizey)
+						{
+							x=x0;
+							y++;
+							break;
+						}
+					}
+				}
+			}
+		}				  	
+		continue;  //查找到对应点阵字库立即退出，防止多个汉字重复取模带来影响
+	}
+}
+
+
+/*************************************************************************************
+ * @description: 显示汉字串
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint8_t} *s 要显示的汉字串
+ * @param {uint16_t} fc 字的颜色
+ * @param {uint16_t} bc 字的背景色
+ * @param {uint8_t} sizey 字号 可选 12 16 24 32
+ * @param {uint8_t} mode 0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteChinese_BasicFont(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{
+	while(*s!=0)
+	{
+		if(sizey==12) ST7789_WriteChinese12x12_BasicFont(x,y,s,fc,bc,sizey,mode);
+		else if(sizey==16) ST7789_WriteChinese16x16_BasicFont(x,y,s,fc,bc,sizey,mode);
+		else if(sizey==24) ST7789_WriteChinese24x24_BasicFont(x,y,s,fc,bc,sizey,mode);
+		else if(sizey==32) ST7789_WriteChinese32x32_BasicFont(x,y,s,fc,bc,sizey,mode);
+		else return;
+		s+=2;
+		x+=sizey;
+	}
+}
+
+/*************************************************************************************
+ * @description: 显示字符
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint8_t} num 要显示的字符
+ * @param {uint16_t} fc 字色
+ * @param {uint16_t} bc 背景色
+ * @param {uint8_t} sizey 字号
+ * @param {uint8_t} mode 0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteChar_BasicFont(uint16_t x,uint16_t y,uint8_t num,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{
+	uint8_t temp,sizex,t,m=0;
+	uint16_t i,TypefaceNum;//一个字符所占字节大小
+	uint16_t x0=x;
+	sizex=sizey/2;
+	TypefaceNum=(sizex/8+((sizex%8)?1:0))*sizey;
+	num=num-' ';    //得到偏移后的值
+	ST7789_SetAddressWindow(x,y,x+sizex-1,y+sizey-1);  //设置光标位置 
+	for(i=0;i<TypefaceNum;i++)
+	{ 
+		if(sizey==12)temp=ascii_1206[num][i];		       //调用6x12字体
+		else if(sizey==16)temp=ascii_1608[num][i];		 //调用8x16字体
+		else if(sizey==24)temp=ascii_2412[num][i];		 //调用12x24字体
+		else if(sizey==32)temp=ascii_3216[num][i];		 //调用16x32字体
+		else return;
+		for(t=0;t<8;t++)
+		{
+			if(!mode)//非叠加模式
+			{
+				if(temp&(0x01<<t))ST7789_WriteData_Bit16(fc);
+				else ST7789_WriteData_Bit16(bc);
+				m++;
+				if(m%sizex==0)
+				{
+					m=0;
+					break;
+				}
+			}
+			else//叠加模式
+			{
+				if(temp&(0x01<<t))ST7789_DrawPixel(x,y,fc);//画一个点
+				x++;
+				if((x-x0)==sizex)
+				{
+					x=x0;
+					y++;
+					break;
+				}
+			}
+		}
+	}   	 	  
+}
+
+/*************************************************************************************
+ * @description: 显示字符串
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {const uint8_t} *p 要显示的字符串
+ * @param {uint16_t} fc 字色
+ * @param {uint16_t} bc 背景色
+ * @param {uint8_t} sizey 字号
+ * @param {uint8_t} mode  0非叠加模式  1叠加模式
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteString_BasicFont(uint16_t x,uint16_t y,const uint8_t *p,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode)
+{         
+	while(*p!='\0')
+	{       
+		ST7789_WriteChar_BasicFont(x,y,*p,fc,bc,sizey,mode);
+		x+=sizey/2;
+		p++;
+	}  
+}
+
+
+/*************************************************************************************
+ * @description: 显示整数变量
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {uint16_t} num 变量
+ * @param {uint8_t} len 要显示的长度
+ * @param {uint16_t} fc 字色
+ * @param {uint16_t} bc 背景色
+ * @param {uint8_t} sizey 字号
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteIntNum_BasicFont(uint16_t x,uint16_t y,uint16_t num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey)
+{         	
+	uint8_t t,temp;
+	uint8_t enshow=0;
+	uint8_t sizex=sizey/2;
+	for(t=0;t<len;t++)
+	{
+		temp=(num/pow(10,len-t-1))%10;
+		if(enshow==0&&t<(len-1))
+		{
+			if(temp==0)
+			{
+				ST7789_WriteChar_BasicFont(x+t*sizex,y,' ',fc,bc,sizey,0);
+				continue;
+			}else enshow=1; 
+		 	 
+		}
+	 	ST7789_WriteChar_BasicFont(x+t*sizex,y,temp+48,fc,bc,sizey,0);
+	}
+} 
+
+
+/*************************************************************************************
+ * @description: 显示浮点数变量
+ * @param {uint16_t} x 横坐标
+ * @param {uint16_t} y 纵坐标
+ * @param {float} num 要显示的小数变量
+ * @param {uint8_t} len 显示长度
+ * @param {uint16_t} fc 字色
+ * @param {uint16_t} bc 背景色
+ * @param {uint8_t} sizey 字号
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteFloatNum_BasicFont(uint16_t x,uint16_t y,float num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey)
+{         	
+	uint8_t t,temp,sizex;
+	uint16_t num1;
+	sizex=sizey/2;
+	num1=num*100;
+	for(t=0;t<len;t++)
+	{
+		temp=(num1/pow(10,len-t-1))%10;
+		if(t==(len-2))
+		{
+			ST7789_WriteChar_BasicFont(x+(len-2)*sizex,y,'.',fc,bc,sizey,0);
+			t++;
+			len+=1;
+		}
+	 	ST7789_WriteChar_BasicFont(x+t*sizex,y,temp+48,fc,bc,sizey,0);
+	}
+}
+
+#endif
+
+/*************************************************************************************
+ * @description: 写ASCII字符
+ * @param {uint16_t} x 字符左上角横坐标
+ * @param {uint16_t} y 字符左上角纵坐标
+ * @param {char} ch 待写字符
+ * @param {FontDef} font 字体，详看fonts.h库文件
+ * @param {uint16_t} color 字符颜色
+ * @param {uint16_t} bgcolor 背景颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteChar_FastFont(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t color, uint16_t bgcolor)
+{
+	uint32_t i, b, j;
+	ST7789_Select();
+	ST7789_SetAddressWindow(x, y, x + font.width - 1, y + font.height - 1);
+
+	for (i = 0; i < font.height; i++) {
+		b = font.data[(ch - 32) * font.height + i];
+		for (j = 0; j < font.width; j++) {
+			if ((b << j) & 0x8000) {
+				uint8_t data[] = {color >> 8, color & 0xFF};
+				ST7789_WriteData(data, sizeof(data));
+			}
+			else {
+				uint8_t data[] = {bgcolor >> 8, bgcolor & 0xFF};
+				ST7789_WriteData(data, sizeof(data));
+			}
+		}
+	}
+	ST7789_UnSelect();
+}
+
+
+
+/*************************************************************************************
+ * @description: 写字符串
+ * @param {uint16_t} x 字符串左上角横坐标
+ * @param {uint16_t} y 字符串左上角纵坐标
+ * @param {const char} *str 字符串
+ * @param {FontDef} font 字体
+ * @param {uint16_t} color 颜色
+ * @param {uint16_t} bgcolor 背景色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteString_FastFont(uint16_t x, uint16_t y, const char *str, FontDef font, uint16_t color, uint16_t bgcolor)
+{
+	ST7789_Select();
+	while (*str) {
+		if (x + font.width >= ST7789_WIDTH) {
+			x = 0;
+			y += font.height;
+			if (y + font.height >= ST7789_HEIGHT) {
+				break;
+			}
+
+			if (*str == ' ') {
+				// skip spaces in the beginning of the new line
+				str++;
+				continue;
+			}
+		}
+		ST7789_WriteChar_FastFont(x, y, *str, font, color, bgcolor);
+		x += font.width;
+		str++;
+	}
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 显示整数
+ * @param {uint16_t} x 左上角横坐标
+ * @param {uint16_t} y 左上角纵坐标
+ * @param {uint32_t} num 数字变量
+ * @param {uint8_t} len 显示长度
+ * @param {FontDef} font 字体
+ * @param {uint16_t} color 字体颜色
+ * @param {uint16_t} bgcolor 字体背景颜色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteIntNum_FastFont(uint16_t x, uint16_t y, int num, uint8_t len, FontDef font, uint16_t color, uint16_t bgcolor)
+{
+    uint8_t size = 1;   // 存储数字占总字节长度
+    int temp = num / 10;  // 临时存储数字变化
+    while(temp > 0)
+    {
+        temp /= 10;
+        size++;
+    }
+    char* str = malloc(sizeof(char) * size);
+    sprintf(str, "%d", num);
+    for(int i = 0; i < len; i++)
+    {
+    	if(str[i] != 0)
+    	{
+    		ST7789_WriteChar_FastFont(x + i * font.width, y, str[i], font, color, bgcolor);
+    	}
+    	else
+    	{
+    		ST7789_WriteChar_FastFont(x + i * font.width, y, ' ', font, color, bgcolor);
+    	}
+    }
+    free(str);
+}
+
+
+/*************************************************************************************
+ * @description: 显示浮点数
+ * @param {uint16_t} x 浮点数左上角横坐标
+ * @param {uint16_t} y 浮点数左上角纵坐标
+ * @param {float} num 浮点数数字
+ * @param {uint8_t} intLen 浮点数整数部分长度，不应超过9
+ * @param {uint8_t} floatLen 浮点数小数部分长度，不应超过9
+ * @param {FontDef} font 字体
+ * @param {uint16_t} color 字色
+ * @param {uint16_t} bgcolor 背景色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_WriteFloatNum_FastFont(uint16_t x, uint16_t y, float num, uint8_t intLen, uint8_t floatLen, FontDef font, uint16_t color, uint16_t bgcolor)
+{
+    int intPart = (int)num;
+    int floatPart = (int)((num - intPart) * pow(10, floatLen));
+    ST7789_WriteIntNum_FastFont(x, y, intPart, intLen, font, color, bgcolor);
+	ST7789_WriteChar_FastFont(x + intLen * font.width, y, '.', font, color, bgcolor);
+    ST7789_WriteIntNum_FastFont(x + (intLen + 1) * font.width, y, floatPart, intLen, font, color, bgcolor);
+
+}
+
+
+
+/*************************************************************************************
+ * @description: 颜色反相
+ * @param {uint8_t} invert 是否反相：ST7789_INVON/ST7789_INVOFF
+ * @return {*}
+ *************************************************************************************/
+void ST7789_InvertColors(uint8_t invert)
+{
+	ST7789_Select();
+	ST7789_WriteCommand(invert ? 0x21 /* INVON */ : 0x20 /* INVOFF */);
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 画图，如果是八位数组应该进行强制转换
+ * @param {uint16_t} x 起始横坐标
+ * @param {uint16_t} y 起始纵坐标
+ * @param {uint16_t} w 图片宽度
+ * @param {uint16_t} h 图片高度
+ * @param {const uint16_t} *data 图片数据
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data)
+{
+	if ((x >= ST7789_WIDTH) || (y >= ST7789_HEIGHT))
+		return;
+	if ((x + w - 1) >= ST7789_WIDTH)
+		return;
+	if ((y + h - 1) >= ST7789_HEIGHT)
+		return;
+
+	ST7789_Select();
+	ST7789_SetAddressWindow(x, y, x + w - 1, y + h - 1);
+	ST7789_WriteData((uint8_t *)data, sizeof(uint16_t) * w * h);
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 画一个填充矩形
+ * @param {uint16_t} x 矩形左上横坐标
+ * @param {uint16_t} y 矩形左上纵坐标
+ * @param {uint16_t} w 矩形宽度
+ * @param {uint16_t} h 矩形高度
+ * @param {uint16_t} color 填充色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawFilledRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
+{
+	ST7789_Select();
+	uint8_t i;
+
+	/* Check input parameters */
+	if (x >= ST7789_WIDTH ||
+		y >= ST7789_HEIGHT) {
+		/* Return error */
+		return;
+	}
+
+	/* Check width and height */
+	if ((x + w) >= ST7789_WIDTH) {
+		w = ST7789_WIDTH - x;
+	}
+	if ((y + h) >= ST7789_HEIGHT) {
+		h = ST7789_HEIGHT - y;
+	}
+
+	/* Draw lines */
+	for (i = 0; i <= h; i++) {
+		/* Draw lines */
+		ST7789_DrawLine(x, y + i, x + w, y + i, color);
+	}
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 画三角形
+ * @param {uint16_t} x1 顶点横坐标
+ * @param {uint16_t} y1 顶点纵坐标
+ * @param {uint16_t} x2 顶点横坐标
+ * @param {uint16_t} y2 顶点纵坐标
+ * @param {uint16_t} x3 顶点横坐标
+ * @param {uint16_t} y3 顶点纵坐标
+ * @param {uint16_t} color 线条色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t color)
+{
+	ST7789_Select();
+	/* Draw lines */
+	ST7789_DrawLine(x1, y1, x2, y2, color);
+	ST7789_DrawLine(x2, y2, x3, y3, color);
+	ST7789_DrawLine(x3, y3, x1, y1, color);
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 填充三角形
+ * @param {uint16_t} x1 顶点横坐标
+ * @param {uint16_t} y1 顶点纵坐标
+ * @param {uint16_t} x2 顶点横坐标
+ * @param {uint16_t} y2 顶点纵坐标
+ * @param {uint16_t} x3 顶点横坐标
+ * @param {uint16_t} y3 顶点纵坐标
+ * @param {uint16_t} color 填充色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawFilledTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t color)
+{
+	ST7789_Select();
+	int16_t deltax = 0, deltay = 0, x = 0, y = 0, xinc1 = 0, xinc2 = 0,
+			yinc1 = 0, yinc2 = 0, den = 0, num = 0, numadd = 0, numpixels = 0,
+			curpixel = 0;
+
+	deltax = ABS(x2 - x1);
+	deltay = ABS(y2 - y1);
+	x = x1;
+	y = y1;
+
+	if (x2 >= x1) {
+		xinc1 = 1;
+		xinc2 = 1;
+	}
+	else {
+		xinc1 = -1;
+		xinc2 = -1;
+	}
+
+	if (y2 >= y1) {
+		yinc1 = 1;
+		yinc2 = 1;
+	}
+	else {
+		yinc1 = -1;
+		yinc2 = -1;
+	}
+
+	if (deltax >= deltay) {
+		xinc1 = 0;
+		yinc2 = 0;
+		den = deltax;
+		num = deltax / 2;
+		numadd = deltay;
+		numpixels = deltax;
+	}
+	else {
+		xinc2 = 0;
+		yinc1 = 0;
+		den = deltay;
+		num = deltay / 2;
+		numadd = deltax;
+		numpixels = deltay;
+	}
+
+	for (curpixel = 0; curpixel <= numpixels; curpixel++) {
+		ST7789_DrawLine(x, y, x3, y3, color);
+
+		num += numadd;
+		if (num >= den) {
+			num -= den;
+			x += xinc1;
+			y += yinc1;
+		}
+		x += xinc2;
+		y += yinc2;
+	}
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 填充圆
+ * @param {int16_t} x0 圆心横坐标
+ * @param {int16_t} y0 圆心纵坐标
+ * @param {int16_t} r 圆半径
+ * @param {uint16_t} color 填充色
+ * @return {*}
+ *************************************************************************************/
+void ST7789_DrawFilledCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
+{
+	ST7789_Select();
+	int16_t f = 1 - r;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * r;
+	int16_t x = 0;
+	int16_t y = r;
+
+	ST7789_DrawPixel(x0, y0 + r, color);
+	ST7789_DrawPixel(x0, y0 - r, color);
+	ST7789_DrawPixel(x0 + r, y0, color);
+	ST7789_DrawPixel(x0 - r, y0, color);
+	ST7789_DrawLine(x0 - r, y0, x0 + r, y0, color);
+
+	while (x < y) {
+		if (f >= 0) {
+			y--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x++;
+		ddF_x += 2;
+		f += ddF_x;
+
+		ST7789_DrawLine(x0 - x, y0 + y, x0 + x, y0 + y, color);
+		ST7789_DrawLine(x0 + x, y0 - y, x0 - x, y0 - y, color);
+
+		ST7789_DrawLine(x0 + y, y0 + x, x0 - y, y0 + x, color);
+		ST7789_DrawLine(x0 + y, y0 - x, x0 - y, y0 - x, color);
+	}
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 撕裂效应线，没搞懂是啥
+ * @param {uint8_t} tear 是否开启：ST7789_TEON/ST7789_TEOFF
+ * @return {*}
+ *************************************************************************************/
+void ST7789_TearEffect(uint8_t tear)
+{
+	ST7789_Select();
+	ST7789_WriteCommand(tear ? 0x35 /* TEON */ : 0x34 /* TEOFF */);
+	ST7789_UnSelect();
+}
+
+
+/*************************************************************************************
+ * @description: 测试
+ * @param {*}
+ * @return {*}
+ *************************************************************************************/
+void ST7789_Test(void)
+{
+	ST7789_FillAll(WHITE);
+	HAL_Delay(1000);
+	ST7789_WriteString(10, 20, "Speed Test", Font_11x18, RED, WHITE);
+	HAL_Delay(1000);
+	ST7789_FillAll(CYAN);
+    HAL_Delay(500);
+	ST7789_FillAll(RED);
+    HAL_Delay(500);
+	ST7789_FillAll(BLUE);
+    HAL_Delay(500);
+	ST7789_FillAll(GREEN);
+    HAL_Delay(500);
+	ST7789_FillAll(YELLOW);
+    HAL_Delay(500);
+	ST7789_FillAll(BROWN);
+    HAL_Delay(500);
+	ST7789_FillAll(DARKBLUE);
+    HAL_Delay(500);
+	ST7789_FillAll(MAGENTA);
+    HAL_Delay(500);
+	ST7789_FillAll(LIGHTGREEN);
+    HAL_Delay(500);
+	ST7789_FillAll(LGRAY);
+    HAL_Delay(500);
+	ST7789_FillAll(LBBLUE);
+    HAL_Delay(500);
+	ST7789_FillAll(WHITE);
+	HAL_Delay(500);
+
+	ST7789_WriteString(10, 10, "Font test.", Font_16x26, GBLUE, WHITE);
+	ST7789_WriteString(10, 50, "Hello Steve!", Font_7x10, RED, WHITE);
+	ST7789_WriteString(10, 75, "Hello Steve!", Font_11x18, YELLOW, WHITE);
+	ST7789_WriteString(10, 100, "Hello Steve!", Font_16x26, MAGENTA, WHITE);
+	HAL_Delay(1000);
+
+	ST7789_FillAll(RED);
+	ST7789_WriteString(10, 10, "Rect./Line.", Font_11x18, YELLOW, RED);
+	ST7789_DrawRectangle(30, 30, 100, 100, WHITE);
+	HAL_Delay(1000);
+
+	ST7789_FillAll(RED);
+	ST7789_WriteString(10, 10, "Filled Rect.", Font_11x18, YELLOW, RED);
+	ST7789_DrawFilledRectangle(30, 30, 50, 50, WHITE);
+	HAL_Delay(1000);
+
+
+	ST7789_FillAll(RED);
+	ST7789_WriteString(10, 10, "Circle.", Font_11x18, YELLOW, RED);
+	ST7789_DrawCircle(60, 60, 25, WHITE);
+	HAL_Delay(1000);
+
+	ST7789_FillAll(RED);
+	ST7789_WriteString(10, 10, "Filled Cir.", Font_11x18, YELLOW, RED);
+	ST7789_DrawFilledCircle(60, 60, 25, WHITE);
+	HAL_Delay(1000);
+
+	ST7789_FillAll(RED);
+	ST7789_WriteString(10, 10, "Triangle", Font_11x18, YELLOW, RED);
+	ST7789_DrawTriangle(30, 30, 30, 70, 60, 40, WHITE);
+	HAL_Delay(1000);
+
+	ST7789_FillAll(RED);
+	ST7789_WriteString(10, 10, "Filled Tri", Font_11x18, YELLOW, RED);
+	ST7789_DrawFilledTriangle(30, 30, 30, 70, 60, 40, WHITE);
+	HAL_Delay(1000);
+
+	//	If FLASH cannot storage anymore datas, please delete codes below.
+	ST7789_FillAll(WHITE);
+	ST7789_DrawImage(0, 0, 128, 128, (uint16_t *)saber);
+	HAL_Delay(3000);
+}

@@ -1,0 +1,4 @@
+stm32f4xx_ll_usart.h:1802:26:LL_USART_IsActiveFlag_TC	16	static
+stm32f4xx_ll_usart.h:2425:22:LL_USART_TransmitData8	16	static
+MyPrint_LL.c:19:1:__io_putchar	16	static
+MyPrint_LL.c:26:6:DEBUG_PRINT	16	static

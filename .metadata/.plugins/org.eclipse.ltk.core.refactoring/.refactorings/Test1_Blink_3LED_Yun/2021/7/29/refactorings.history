@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="将资源“Test1_Blink_3LED_Yun/F407VE_LED_3Color.ioc”重命名为“Test1_Blink_3LED_Yun.ioc”" description="重命名资源“F407VE_LED_3Color.ioc”" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="F407VE_LED_3Color.ioc" name="Test1_Blink_3LED_Yun.ioc" stamp="1626180405146" updateReferences="true"/>
+</session>
