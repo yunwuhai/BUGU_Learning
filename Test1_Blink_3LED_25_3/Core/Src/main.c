@@ -58,10 +58,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	switch(GPIO_Pin)
 	{
-	case SW_RED:if(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_4))
-					  RED_ON;
-				else  RED_OFF;
-				break;
+	case SW_RED:
+	{
+		if(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_4))
+		{
+			RED_ON();
+		}
+		else
+		{
+			RED_OFF();
+		}
+		break;
+	}
 	case SW_BLUE:if(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6))
 					BLUE_ON;
 			  else	BLUE_OFF;

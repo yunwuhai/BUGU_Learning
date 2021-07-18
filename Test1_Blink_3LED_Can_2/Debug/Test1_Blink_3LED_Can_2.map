@@ -2755,17 +2755,17 @@ LOAD d:/software/work/stm32cubeide_1.6.1/stm32cubeide/plugins/com.st.stm32cube.i
  .debug_macro   0x000000000001ebbd      0x1b6 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
  .debug_macro   0x000000000001ed73      0x1d4 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
 
-.debug_line     0x0000000000000000     0x5278
+.debug_line     0x0000000000000000     0x5294
  .debug_line    0x0000000000000000      0x6d7 Core/Src/gpio.o
- .debug_line    0x00000000000006d7      0x7a9 Core/Src/main.o
- .debug_line    0x0000000000000e80      0x6aa Core/Src/stm32f4xx_hal_msp.o
- .debug_line    0x000000000000152a      0x7b4 Core/Src/stm32f4xx_it.o
- .debug_line    0x0000000000001cde      0x72b Core/Src/system_stm32f4xx.o
- .debug_line    0x0000000000002409       0x88 Core/Startup/startup_stm32f407vetx.o
- .debug_line    0x0000000000002491      0x991 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
- .debug_line    0x0000000000002e22      0xc40 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
- .debug_line    0x0000000000003a62      0xb09 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
- .debug_line    0x000000000000456b      0xd0d Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+ .debug_line    0x00000000000006d7      0x7c5 Core/Src/main.o
+ .debug_line    0x0000000000000e9c      0x6aa Core/Src/stm32f4xx_hal_msp.o
+ .debug_line    0x0000000000001546      0x7b4 Core/Src/stm32f4xx_it.o
+ .debug_line    0x0000000000001cfa      0x72b Core/Src/system_stm32f4xx.o
+ .debug_line    0x0000000000002425       0x88 Core/Startup/startup_stm32f407vetx.o
+ .debug_line    0x00000000000024ad      0x991 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+ .debug_line    0x0000000000002e3e      0xc40 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+ .debug_line    0x0000000000003a7e      0xb09 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+ .debug_line    0x0000000000004587      0xd0d Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
 
 .debug_str      0x0000000000000000    0xbbad6
  .debug_str     0x0000000000000000    0xba84b Core/Src/gpio.o

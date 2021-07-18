@@ -37,13 +37,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  0001ef47  00000000  00000000  00025bc8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00005278  00000000  00000000  00044b0f  2**0
+ 17 .debug_line   00005294  00000000  00000000  00044b0f  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000bbad6  00000000  00000000  00049d87  2**0
+ 18 .debug_str    000bbad6  00000000  00000000  00049da3  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  0010585d  2**0
+ 19 .comment      00000053  00000000  00000000  00105879  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00000e9c  00000000  00000000  001058b0  2**2
+ 20 .debug_frame  00000e9c  00000000  00000000  001058cc  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -752,80 +752,73 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  800073c:	af00      	add	r7, sp, #0
  800073e:	4603      	mov	r3, r0
  8000740:	80fb      	strh	r3, [r7, #6]
-	if((SW_RED())==1)
+	if((SW_RED())==1)RED_ON();
  8000742:	2101      	movs	r1, #1
  8000744:	4827      	ldr	r0, [pc, #156]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  8000746:	f000 fc3f 	bl	8000fc8 <HAL_GPIO_ReadPin>
  800074a:	4603      	mov	r3, r0
  800074c:	2b01      	cmp	r3, #1
  800074e:	d106      	bne.n	800075e <HAL_GPIO_EXTI_Callback+0x26>
-	RED_ON();
  8000750:	2201      	movs	r2, #1
  8000752:	f44f 5100 	mov.w	r1, #8192	; 0x2000
  8000756:	4823      	ldr	r0, [pc, #140]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  8000758:	f000 fc4e 	bl	8000ff8 <HAL_GPIO_WritePin>
  800075c:	e00c      	b.n	8000778 <HAL_GPIO_EXTI_Callback+0x40>
-	else if((SW_RED())==0)
+	else if((SW_RED())==0)RED_OFF();
  800075e:	2101      	movs	r1, #1
  8000760:	4820      	ldr	r0, [pc, #128]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  8000762:	f000 fc31 	bl	8000fc8 <HAL_GPIO_ReadPin>
  8000766:	4603      	mov	r3, r0
  8000768:	2b00      	cmp	r3, #0
  800076a:	d105      	bne.n	8000778 <HAL_GPIO_EXTI_Callback+0x40>
-	RED_OFF();
  800076c:	2200      	movs	r2, #0
  800076e:	f44f 5100 	mov.w	r1, #8192	; 0x2000
  8000772:	481c      	ldr	r0, [pc, #112]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  8000774:	f000 fc40 	bl	8000ff8 <HAL_GPIO_WritePin>
-	if((SW_BLUE())==1)
+	if((SW_BLUE())==1)BLUE_ON();
  8000778:	2102      	movs	r1, #2
  800077a:	481a      	ldr	r0, [pc, #104]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  800077c:	f000 fc24 	bl	8000fc8 <HAL_GPIO_ReadPin>
  8000780:	4603      	mov	r3, r0
  8000782:	2b01      	cmp	r3, #1
  8000784:	d105      	bne.n	8000792 <HAL_GPIO_EXTI_Callback+0x5a>
-	BLUE_ON();
  8000786:	2201      	movs	r2, #1
  8000788:	2108      	movs	r1, #8
  800078a:	4817      	ldr	r0, [pc, #92]	; (80007e8 <HAL_GPIO_EXTI_Callback+0xb0>)
  800078c:	f000 fc34 	bl	8000ff8 <HAL_GPIO_WritePin>
  8000790:	e00b      	b.n	80007aa <HAL_GPIO_EXTI_Callback+0x72>
-	else if((SW_BLUE())==0)
+	else if((SW_BLUE())==0)BLUE_OFF();
  8000792:	2102      	movs	r1, #2
  8000794:	4813      	ldr	r0, [pc, #76]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  8000796:	f000 fc17 	bl	8000fc8 <HAL_GPIO_ReadPin>
  800079a:	4603      	mov	r3, r0
  800079c:	2b00      	cmp	r3, #0
  800079e:	d104      	bne.n	80007aa <HAL_GPIO_EXTI_Callback+0x72>
-	BLUE_OFF();
  80007a0:	2200      	movs	r2, #0
  80007a2:	2108      	movs	r1, #8
  80007a4:	4810      	ldr	r0, [pc, #64]	; (80007e8 <HAL_GPIO_EXTI_Callback+0xb0>)
  80007a6:	f000 fc27 	bl	8000ff8 <HAL_GPIO_WritePin>
-	if((SW_GREEN())==1)
+	if((SW_GREEN())==1)GREEN_ON();
  80007aa:	2104      	movs	r1, #4
  80007ac:	480d      	ldr	r0, [pc, #52]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  80007ae:	f000 fc0b 	bl	8000fc8 <HAL_GPIO_ReadPin>
  80007b2:	4603      	mov	r3, r0
  80007b4:	2b01      	cmp	r3, #1
  80007b6:	d105      	bne.n	80007c4 <HAL_GPIO_EXTI_Callback+0x8c>
-	GREEN_ON();
  80007b8:	2201      	movs	r2, #1
  80007ba:	2120      	movs	r1, #32
  80007bc:	480a      	ldr	r0, [pc, #40]	; (80007e8 <HAL_GPIO_EXTI_Callback+0xb0>)
  80007be:	f000 fc1b 	bl	8000ff8 <HAL_GPIO_WritePin>
-	else if((SW_GREEN())==0)
-	GREEN_OFF();
+	else if((SW_GREEN())==0)GREEN_OFF();
 }
  80007c2:	e00b      	b.n	80007dc <HAL_GPIO_EXTI_Callback+0xa4>
-	else if((SW_GREEN())==0)
+	else if((SW_GREEN())==0)GREEN_OFF();
  80007c4:	2104      	movs	r1, #4
  80007c6:	4807      	ldr	r0, [pc, #28]	; (80007e4 <HAL_GPIO_EXTI_Callback+0xac>)
  80007c8:	f000 fbfe 	bl	8000fc8 <HAL_GPIO_ReadPin>
  80007cc:	4603      	mov	r3, r0
  80007ce:	2b00      	cmp	r3, #0
  80007d0:	d104      	bne.n	80007dc <HAL_GPIO_EXTI_Callback+0xa4>
-	GREEN_OFF();
  80007d2:	2200      	movs	r2, #0
  80007d4:	2120      	movs	r1, #32
  80007d6:	4804      	ldr	r0, [pc, #16]	; (80007e8 <HAL_GPIO_EXTI_Callback+0xb0>)

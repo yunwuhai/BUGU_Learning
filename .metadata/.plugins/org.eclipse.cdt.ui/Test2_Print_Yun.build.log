@@ -1,4 +1,4 @@
-16:49:00 **** Incremental Build of configuration Debug for project Test2_Print_Yun ****
+22:28:52 **** Incremental Build of configuration Debug for project Test2_Print_Yun ****
 make -j8 all 
 arm-none-eabi-size   Test2_Print_Yun.elf 
    text	   data	    bss	    dec	    hex	filename
@@ -6,5 +6,5 @@ arm-none-eabi-size   Test2_Print_Yun.elf
 Finished building: default.size.stdout
  
 
-16:49:00 Build Finished. 0 errors, 0 warnings. (took 342ms)
+22:28:53 Build Finished. 0 errors, 0 warnings. (took 217ms)
 

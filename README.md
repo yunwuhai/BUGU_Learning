@@ -8,3 +8,5 @@
 
 [[点灯大师云雾海]非常随意的嵌入式单片机培训(1)——STM32CubeIDE_STM32F407_GPIO_1](https://www.bilibili.com/video/BV1yU4y137wg)
 
+[[点灯大师云雾海]非常随意的嵌入式单片机培训(2)——STM32CubeIDE_STM32F407_GPIO_作业分析](https://www.bilibili.com/video/BV1xb4y1k75k)
+

@@ -156,18 +156,12 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if((SW_RED())==1)
-	RED_ON();
-	else if((SW_RED())==0)
-	RED_OFF();
-	if((SW_BLUE())==1)
-	BLUE_ON();
-	else if((SW_BLUE())==0)
-	BLUE_OFF();
-	if((SW_GREEN())==1)
-	GREEN_ON();
-	else if((SW_GREEN())==0)
-	GREEN_OFF();
+	if((SW_RED())==1)RED_ON();
+	else if((SW_RED())==0)RED_OFF();
+	if((SW_BLUE())==1)BLUE_ON();
+	else if((SW_BLUE())==0)BLUE_OFF();
+	if((SW_GREEN())==1)GREEN_ON();
+	else if((SW_GREEN())==0)GREEN_OFF();
 }
 /* USER CODE END 4 */
 
