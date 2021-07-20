@@ -208,45 +208,14 @@ void USART1_IRQHandler(void)
 
   /* USER CODE END USART1_IRQn 0 */
   /* USER CODE BEGIN USART1_IRQn 1 */
-
+  if(LL_USART_IsActiveFlag_RXNE(USART1))
+  {
+	  LL_USART_TransmitData8(USART1, LL_USART_ReceiveData8(USART1));
+  }
   /* USER CODE END USART1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles EXTI line[15:10] interrupts.
-  */
-void EXTI15_10_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-
-  /* USER CODE END EXTI15_10_IRQn 0 */
-  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_11) != RESET)
-  {
-    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_11);
-    /* USER CODE BEGIN LL_EXTI_LINE_11 */
-    SW_BLUE_EXTI_Callback();
-    /* USER CODE END LL_EXTI_LINE_11 */
-  }
-  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_13) != RESET)
-  {
-    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_13);
-    /* USER CODE BEGIN LL_EXTI_LINE_13 */
-    SW_GREEN_EXTI_Callback();
-    /* USER CODE END LL_EXTI_LINE_13 */
-  }
-  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET)
-  {
-    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_15);
-    /* USER CODE BEGIN LL_EXTI_LINE_15 */
-    SW_RED_EXTI_Callback();
-    /* USER CODE END LL_EXTI_LINE_15 */
-  }
-  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
-
-  /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT STMicroelectronics *****END; OF FILE****/

@@ -80,15 +80,6 @@ void Error_Handler(void);
 #define GREEN_LED_GPIO_Port GPIOE
 #define RED_LED_Pin LL_GPIO_PIN_13
 #define RED_LED_GPIO_Port GPIOC
-#define SW_BLUE_Pin LL_GPIO_PIN_11
-#define SW_BLUE_GPIO_Port GPIOE
-#define SW_BLUE_EXTI_IRQn EXTI15_10_IRQn
-#define SW_GREEN_Pin LL_GPIO_PIN_13
-#define SW_GREEN_GPIO_Port GPIOE
-#define SW_GREEN_EXTI_IRQn EXTI15_10_IRQn
-#define SW_RED_Pin LL_GPIO_PIN_15
-#define SW_RED_GPIO_Port GPIOE
-#define SW_RED_EXTI_IRQn EXTI15_10_IRQn
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */

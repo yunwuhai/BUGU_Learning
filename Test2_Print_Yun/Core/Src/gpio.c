@@ -41,7 +41,6 @@
 void MX_GPIO_Init(void)
 {
 
-  LL_EXTI_InitTypeDef EXTI_InitStruct = {0};
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
@@ -71,58 +70,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(RED_LED_GPIO_Port, &GPIO_InitStruct);
-
-  /**/
-  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTE, LL_SYSCFG_EXTI_LINE11);
-
-  /**/
-  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTE, LL_SYSCFG_EXTI_LINE13);
-
-  /**/
-  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTE, LL_SYSCFG_EXTI_LINE15);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_11;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING_FALLING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_13;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING_FALLING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_15;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING_FALLING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  LL_GPIO_SetPinPull(SW_BLUE_GPIO_Port, SW_BLUE_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinPull(SW_GREEN_GPIO_Port, SW_GREEN_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinPull(SW_RED_GPIO_Port, SW_RED_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinMode(SW_BLUE_GPIO_Port, SW_BLUE_Pin, LL_GPIO_MODE_INPUT);
-
-  /**/
-  LL_GPIO_SetPinMode(SW_GREEN_GPIO_Port, SW_GREEN_Pin, LL_GPIO_MODE_INPUT);
-
-  /**/
-  LL_GPIO_SetPinMode(SW_RED_GPIO_Port, SW_RED_Pin, LL_GPIO_MODE_INPUT);
-
-  /* EXTI interrupt init*/
-  NVIC_SetPriority(EXTI15_10_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
