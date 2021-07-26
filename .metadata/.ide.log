@@ -13491,3 +13491,20 @@
 2021-07-20 16:15:07,966 [INFO] ProjectBuilder:2339 - Time for Copy CMSIS : 0mS.
 2021-07-20 16:30:35,410 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] Warning: NLS unused message: CommonTab_AttributeLabel_TerminateDescendants in: org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationsMessages
 2021-07-20 16:38:49,934 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 
+2021-07-25 20:16:39,370 [INFO] Activator:170 - 
+
+
+2021-07-25 20:16:39,410 [INFO] Activator:171 - !SESSION log4j initialized
+2021-07-25 20:16:45,535 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] Warning: NLS unused message: RemoveAllSearchesAction_confirm_label in: org.eclipse.search2.internal.ui.SearchMessages
+2021-07-25 20:17:06,844 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 7?? 25, 2021 8:17:06 ???? org.glassfish.grizzly.http.server.NetworkListener start
+2021-07-25 20:17:06,847 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] ???: Started listener bound to [localhost:1594]
+2021-07-25 20:17:06,847 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 
+2021-07-25 20:17:06,849 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 7?? 25, 2021 8:17:06 ???? org.glassfish.grizzly.http.server.HttpServer start
+2021-07-25 20:17:06,850 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] ???: [HttpServer] Started.
+2021-07-25 20:17:06,850 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 
+2021-07-25 22:39:33,164 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 
+2021-07-26 08:21:52,481 [INFO] Activator:170 - 
+
+
+2021-07-26 08:21:52,511 [INFO] Activator:171 - !SESSION log4j initialized
+2021-07-26 08:22:03,362 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] Warning: NLS unused message: RemoveAllSearchesAction_confirm_label in: org.eclipse.search2.internal.ui.SearchMessages
