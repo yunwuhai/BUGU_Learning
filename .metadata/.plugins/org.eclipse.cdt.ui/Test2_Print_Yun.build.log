@@ -1,10 +1,20 @@
-16:05:08 **** Incremental Build of configuration Debug for project Test2_Print_Yun ****
+18:19:49 **** Incremental Build of configuration Debug for project Test2_Print_Yun ****
 make -j8 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DSTM32F407xx -DUSE_FULL_LL_DRIVER -DHSE_VALUE=25000000 -DHSE_STARTUP_TIMEOUT=100 -DLSE_STARTUP_TIMEOUT=5000 -DLSE_VALUE=32768 -DEXTERNAL_CLOCK_VALUE=12288000 -DHSI_VALUE=16000000 -DLSI_VALUE=32000 -DVDD_VALUE=3300 -DPREFETCH_ENABLE=1 -DINSTRUCTION_CACHE_ENABLE=1 -DDATA_CACHE_ENABLE=1 -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "Test2_Print_Yun.elf" @"objects.list"   -mcpu=cortex-m4 -T"D:\Code\MCU\STM32\F407VE\BUGU\Test2_Print_Yun\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Test2_Print_Yun.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Test2_Print_Yun.elf
+ 
 arm-none-eabi-size   Test2_Print_Yun.elf 
+arm-none-eabi-objdump -h -S  Test2_Print_Yun.elf  > "Test2_Print_Yun.list"
+arm-none-eabi-objcopy  -O binary  Test2_Print_Yun.elf  "Test2_Print_Yun.bin"
    text	   data	    bss	    dec	    hex	filename
   10828	    112	   1592	  12532	   30f4	Test2_Print_Yun.elf
 Finished building: default.size.stdout
  
+Finished building: Test2_Print_Yun.bin
+ 
+Finished building: Test2_Print_Yun.list
+ 
 
-16:05:09 Build Finished. 0 errors, 0 warnings. (took 555ms)
+18:19:50 Build Finished. 0 errors, 0 warnings. (took 721ms)
 
