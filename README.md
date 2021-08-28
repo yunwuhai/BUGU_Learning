@@ -6,7 +6,9 @@
 
 ## 视频链接
 
-[[点灯大师云雾海]非常随意的嵌入式单片机培训(1)——STM32CubeIDE_STM32F407_GPIO_1](https://www.bilibili.com/video/BV1yU4y137wg)
+[[云雾海]嵌入式培训(1)——STM32CubeIDE_STM32F407_GPIO_1](https://www.bilibili.com/video/BV1yU4y137wg)
 
-[[点灯大师云雾海]非常随意的嵌入式单片机培训(2)——STM32CubeIDE_STM32F407_GPIO_作业分析](https://www.bilibili.com/video/BV1xb4y1k75k)
+[[云雾海]嵌入式培训(2)——STM32CubeIDE_STM32F407_GPIO_作业分析](https://www.bilibili.com/video/BV1xb4y1k75k)
+
+[[云雾海]嵌入式培训(3)——串口_STM32_MSP432_ESP32_HT32](https://www.bilibili.com/video/BV1rU4y1n731)
 
