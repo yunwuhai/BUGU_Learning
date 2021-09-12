@@ -12,3 +12,7 @@
 
 [[云雾海]嵌入式培训(3)——串口_STM32_MSP432_ESP32_HT32](https://www.bilibili.com/video/BV1rU4y1n731)
 
+[[云雾海]嵌入式培训(4)——阶段复习](https://www.bilibili.com/video/BV1ef4y1H7yf/)
+
+[[云雾海]嵌入式培训(5)——SPI、I2C原理及驱动程序设计](https://www.bilibili.com/video/BV1GQ4y1r7bV)
+
