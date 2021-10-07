@@ -16,3 +16,25 @@
 
 [[云雾海]嵌入式培训(5)——SPI、I2C原理及驱动程序设计](https://www.bilibili.com/video/BV1GQ4y1r7bV)
 
+[[云雾海]嵌入式培训(6)——做个Arduino（上）](https://www.bilibili.com/video/BV1eQ4y1r7WU?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(7)——做个Arduino（下）](https://www.bilibili.com/video/BV1o44y147Tw?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(8)——你应该懂的一些Arduino小知识](https://www.bilibili.com/video/BV1B64y187Gh?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(9)——Arduino开发环境的安装配置](https://www.bilibili.com/video/BV1k3411y7s3?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(10)——VSCode_Arduino配置](https://www.bilibili.com/video/BV1QP4y1b7JA?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(11)——PlatformIO环境搭建](https://www.bilibili.com/video/BV1rP4y1b7Bv?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(12)——ESP_IDF安装](https://www.bilibili.com/video/BV1Yf4y1F7Bd?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(13)——STM32开源工具链](https://www.bilibili.com/video/BV1Cq4y1o7JN?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(14)——Arduino的Bootloader烧录](https://www.bilibili.com/video/BV1cq4y1N7RV?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(15)——嵌入式学习需要懂的外设](https://www.bilibili.com/video/BV1wv411g7Za?spm_id_from=333.999.0.0)
+
+[[云雾海]嵌入式培训(16)——剩下的就靠自己了](https://www.bilibili.com/video/BV1Gf4y177Fd?spm_id_from=333.999.0.0)
+

@@ -183,13 +183,13 @@ $(BUILD_DIR):
 # clean up
 #######################################
 clean:
-	-rm -fR $(BUILD_DIR)
+	del $(BUILD_DIR)
   
 #######################################
 # openocd
 #######################################
 flash:
-	openocd -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
+	openocd -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg -c init -c halt -c "flash write_image erase $(BUILD_DIR)/$(TARGET).elf" -c reset -c shutdown
 
 #######################################
 # dependencies

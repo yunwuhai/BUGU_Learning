@@ -65,7 +65,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  char test[] = "20:49\r\n";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -96,8 +96,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-  	HAL_UART_Transmit(&huart1, (uint8_t *)"Hello\n", 6, HAL_MAX_DELAY);
-	// HAL_Delay(50);
+  	HAL_UART_Transmit(&huart1, (uint8_t*)test, sizeof(test), HAL_MAX_DELAY);
+	  HAL_Delay(20);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
